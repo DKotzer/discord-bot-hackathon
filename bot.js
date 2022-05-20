@@ -12,17 +12,13 @@ client.on("message", function (message) {
     const gptResponse = await openai.complete({
       engine: "text-davinci-002",
       prompt: message.content,
-      maxTokens: 500,
       temperature: 0.8,
-      topP: 0.3,
-      presencePenalty: 0,
-      frequencyPenalty: 0.5,
-      bestOf: 1,
-      n: 1,
-      stream: false,
-      stop: ["\n", "\n\n"],
+      max_tokens: 1000,
+      top_p: 1,
+      frequency_penalty: 0,
+      presence_penalty: 0,
     });
-    message.reply(`${gptResponse.data.choices[0].text.substring(5)}`);
+    message.reply(`${gptResponse.data.choices[0].text}`);
     prompt += `${gptResponse.data.choices[0].text}\n`;
   })();
 });
