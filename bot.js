@@ -1,7 +1,7 @@
 require("dotenv").config();
 const Discord = require("discord.js");
 const client = new Discord.Client({
-  intents: [Discord.Intents.FLAGS.GUILDS, Discord.Intents.FLAGS.GUILD_MESSAGES],
+  intents: [Discord.Intents.FLAGS.GUILDS, Discord.Intents.FLAGS.GUILD_MESSAGES, Discord.Intents.FLAGS.GUILD_MESSAGE_REACTIONS],
   partials: ["MESSAGE"],
 });
 
@@ -44,9 +44,13 @@ client.on("message", (msg) => {
       case 'ping':
         msg.channel.send("pong!");
         break;
-      case 'addRole':
-        modUser(msg.member);
+      case 'toggleRole':
+        toggleRole(msg, args);
         break;
+      case 'migrateRole':
+        migrateRole(msg, args);
+        break;
+
       case 'reactRole':
         reactRole(msg, args);
         break;
@@ -77,11 +81,65 @@ client.on('interactionCreate', async interaction => {
 
 // client.on("");
 
-function modUser(member) {
-  if (member.roles.cache.has("977323882581205053")) {
-    member.roles.remove("977323882581205053");
+function toggleRole(msg, args) {
+  if (args[0]) {
+    role = args[0]
   } else {
-    member.roles.add("977323882581205053");
+    msg.channel.send("Please enter a role to toggle.")
+    return
+  }
+
+  let member = msg.member;
+
+  let roleObj = msg.guild.roles.cache.find(r => r.name === role);
+
+  if (roleObj) {
+    if (member.roles.cache.has(roleObj.id)) {
+      member.roles.remove(roleObj.id);
+      msg.channel.send(`${role} role removed from ${msg.author.username}.`)
+    } else {
+      member.roles.add(roleObj.id);
+      msg.channel.send(`${role} role added to ${msg.author.username}.`)
+    }
+  } else {
+    msg.channel.send("Unable to find specified role within server.")
+  }
+}
+
+function migrateRole(msg, args) {
+  if (args[0]) {
+    role1 = args[0]
+  } else {
+    msg.channel.send("Please enter a role to remove.")
+    return
+  }
+
+  if (args[1]) {
+    role2 = args[1]
+  } else {
+    msg.channel.send("Please enter a role to add.")
+    return
+  }
+
+  let member = msg.member;
+
+  let role1Obj = msg.guild.roles.cache.find(r => r.name === role1);
+  let role2Obj = msg.guild.roles.cache.find(r => r.name === role2);
+
+  if (role1Obj) {
+    if (role2Obj) {
+      if (member.roles.cache.has(role1Obj.id)) {
+        member.roles.remove(role1Obj.id);
+      }
+      if (!member.roles.cache.has(role2Obj.id)) {
+        member.roles.add(role2Obj.id);
+      }
+      msg.channel.send(`${msg.author.username} successfully migrated from ${role1} to ${role2}.`)
+    } else {
+      msg.channel.send(`Unable to find role ${role2} within server.`)
+    }
+  } else {
+    msg.channel.send(`Unable to find role ${role1} within server.`)
   }
 }
 
@@ -89,18 +147,45 @@ function reactRole(msg, args) {
   if (args[0]) {
     emoji = args[0]
   } else {
-    msg.channel.send("Please enter a valid emoji")
+    msg.channel.send("Please enter a valid emoji.")
     return
   }
 
   if (args[1]) {
     role = args[1]
+    roleObj = msg.guild.roles.cache.find(r => r.name === role);
+    if (!roleObj) {
+      msg.channel.send(`The role "${role}" does not exist in this server.`)
+      return
+    }
   } else {
-    msg.channel.send("Please enter a valid role")
+    msg.channel.send("Please enter a valid role.")
     return
   }
 
-  msg.channel.send(`React to this message with ${emoji} to gain the role ${role}`)
+  msg.channel.send(`React to this message with ${emoji} to gain the role ${role}.`)
+  .then(message => {
+    message.react(emoji);
+
+    const filter = (reaction, user) => {
+      return reaction.emoji.name == emoji && user.id != message.author.id;
+    };
+
+    const collector = message.createReactionCollector({ filter, dispose: true });
+
+    collector.on('collect', (reaction, user) => {
+      let reactor = msg.guild.members.cache.find(u => u.id === user.id);
+      reactor.roles.add(roleObj.id);
+    });
+
+    collector.on('remove', (reaction, user) => {
+      let reactor = msg.guild.members.cache.find(u => u.id === user.id);
+      reactor.roles.remove(roleObj.id);
+    });
+  })
+  .catch(err => {
+    console.log(err)
+  })
 
 }
 
