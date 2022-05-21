@@ -40,8 +40,27 @@ for (const file of eventFiles) {
   }
 }
 
+const COMMAND_LIST = {
+  "": (msg, args) => msg.channel.send(`Are you trying to summon me? Try typing "${BOT_PREFIX} help" for a list of commands.\n☕️ Happy refuelling!`),
+  "help": (msg, args) => getHelpInfo(msg, args),
+  "coffee": (msg, args) => msg.channel.send("☕️☕️☕️☕️☕️☕️☕️☕️☕️☕️☕️☕️☕️☕️☕️☕️☕️"),
+  'ping': (msg, args) => {
+        if (args.length < 1) {
+          msg.channel.send('pong!')
+        } else {
+          pingUser(msg, args);
+        }
+      },
+  "setup": (msg, args) => setupBot(msg, args),
+  "toggle_role": (msg, args) => toggleRole(msg, args),
+  "migrate_role": (msg, args) => migrateRole(msg, args),
+  "create_role": (msg, args) => createRole(msg,args),
+  "react_role": (msg, args) => reactRole(msg, args),
+
+}
+
 client.on("messageDelete", (msg) => {
-  msg.channel.send("👀");
+  // msg.channel.send("👀");
 });
 
 client.on("messageCreate", (msg) => {
@@ -56,38 +75,31 @@ client.on("messageCreate", (msg) => {
     msg.react("🤖");
   }
 
+  if (msg.content === BOT_PREFIX) {
+    msg.content += " ";
+  } 
   if (msg.content.substring(0, BOT_PREFIX.length + 1) == BOT_PREFIX + " ") {
-    var args = msg.content.substring(BOT_PREFIX.length + 1).split(" ");
-    var cmd = args[0];
-    args = args.splice(1);
+    let split = msg.content.substring(BOT_PREFIX.length + 1).split(":")
+    if (split.length < 2) {
+      args = []
+      cmd = split[0].trim();
+    } else {
+      cmd = split[0].trim();
+      args = split.splice(1).join(":").trim().split(" ");
+    }
 
-    switch (cmd) {
-      case "help":
-        msg.channel.send("🦸‍♂️ Help is on the way!");
-        break;
-      case "coffee":
-        msg.channel.send("☕️☕️☕️☕️☕️☕️☕️☕️☕️☕️☕️☕️☕️☕️☕️☕️☕️");
-        break;
-      // !ping
-      case 'ping':
-        if (args.length < 1) {
-          msg.channel.send('pong!')
-        } else {
-          pingUser(msg, args);
-        }
-        break;
-      case "toggle_role":
-        toggleRole(msg, args);
-        break;
-      case "migrate_role":
-        migrateRole(msg, args);
-        break;
-      case "create_role":
-        createRole(msg,args);
-        break;
-      case "react_role":
-        reactRole(msg, args);
-        break;
+    if (COMMAND_LIST[cmd.trim()]) {
+      COMMAND_LIST[cmd.trim()](msg,args)
+    } else {
+      console.log(cmd)
+      console.log(args)
+      if (!COMMAND_LIST[cmd.trim().split(" ")[0]]) {
+        msg.channel.send(`Command "${cmd.trim()}" not recognised. Try typing "${BOT_PREFIX} help" for a list of commands.\n☕️ Happy refuelling!`);
+      } else if (args.length < 1) {
+        msg.channel.send(`Please remember to include a colon (:) after your command if you are passing any arguments.\ne.g. ${BOT_PREFIX} ${cmd.split(" ")[0]}: ${cmd.split(" ")[cmd.split(" ").length-1]}`);
+      } else {
+        msg.channel.send(`Command "${cmd.trim()}" not recognised. Try typing "${BOT_PREFIX} help" for a list of commands.\n☕️ Happy refuelling!`);
+      }
     }
   }
 });
@@ -98,6 +110,15 @@ client.on("messageCreate", (msg) => {
 // });
 
 // client.on("");
+
+function getHelpInfo(msg, args) {
+  let commands = Object.keys(COMMAND_LIST)
+  msg.reply(`🦸‍♂️ Help is on the way!\nAvailable commands:${commands}`);
+}
+
+function setupBot(msg, args) {
+  console.log('does nothing atm)')
+}
 
 function toggleRole(msg, args) {
   args = args.join(" ").split(" && ")
@@ -187,15 +208,27 @@ function createRole(msg, args) {
 }
 
 function reactRole(msg, args) {
-  if (args[args.length-1].match(/\p{Emoji}/u)) {
-    emoji = args.pop()
+  let str = args.join(" ").split("\n")
+  if (str[1]) {
+    customMessage = str.splice(1).join("\n");
   } else {
-    msg.channel.send("Please enter a valid emoji as the final argument.");
+    customMessage = null;
+  }
+  let command = str[0].split(" -> ")
+  if (command.find(c=>c.match(/\p{Emoji}/u))) {
+    if (command[command.length-1].match(/\p{Emoji}/u)) {
+      emoji = command.pop()
+    } else {
+      msg.channel.send("Please write your custom message on a new line.");
+      return
+    }
+  } else {
+    msg.channel.send("Please enter a valid emoji as the final argument on the first line.");
     return
   }
 
-  if (args.length > 0) {
-    roleName = args.join(" ")
+  if (command.length > 0) {
+    roleName = command.join(" ")
   }
 
   if (roleName) {
@@ -210,8 +243,14 @@ function reactRole(msg, args) {
     return;
   }
 
+  if (customMessage) {
+    sendMsg = customMessage;
+  } else  {
+    sendMsg = `React to this message with ${emoji} to gain the role ${roleObj}.`
+  }
+
   msg.channel
-    .send(`React to this message with ${emoji} to gain the role ${roleObj}.`)
+    .send(sendMsg)
     .then((message) => {
       message.react(emoji);
 
@@ -233,6 +272,8 @@ function reactRole(msg, args) {
         let reactor = msg.guild.members.cache.find((u) => u.id === user.id);
         reactor.roles.remove(roleObj.id);
       });
+
+      // msg.delete()
     })
     .catch((err) => {
       console.log(err);
