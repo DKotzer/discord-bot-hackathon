@@ -38,38 +38,12 @@ for (const file of eventFiles) {
     client.on(event.name, (...args) => event.execute(...args));
   }
 }
-client.once("ready", (c) => {
-  console.log(`Ready! Logged in as ${c.user.tag}`);
-});
-
-client.on("interactionCreate", async (interaction) => {
-  console.log(
-    `${interaction.user.tag} in #${interaction.channel.name} triggered an interaction.`
-  );
-  if (!interaction.isCommand()) return;
-
-  const command = client.commands.get(interaction.commandName);
-
-  if (!command) return;
-
-  try {
-    await command.execute(interaction);
-  } catch (error) {
-    console.error(error);
-    await interaction.reply({
-      content: "There was an error while executing this command!",
-      ephemeral: true,
-    });
-  }
-});
-
 
 client.on("messageDelete", (msg) => {
   msg.channel.send("👀");
 });
 
 client.on("messageCreate", (msg) => {
-  // console.log(msg);
   console.log(msg.author.username);
   if (msg.content.toLowerCase().includes("jon")) {
     msg.react("❤️");
@@ -108,24 +82,6 @@ client.on("messageCreate", (msg) => {
         reactRole(msg, args);
         break;
     }
-  }
-});
-
-client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isCommand()) return;
-
-  const { commandName } = interaction;
-
-  if (commandName === "ping") {
-    await interaction.reply("Pong!");
-  } else if (commandName === "server") {
-    await interaction.reply(
-      `Server name: ${interaction.guild.name}\nTotal members: ${interaction.guild.memberCount}`
-    );
-  } else if (commandName === "user") {
-    await interaction.reply("User info.");
-  } else if (commandName === "test") {
-    await interaction.reply("this was a test");
   }
 });
 
