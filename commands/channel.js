@@ -20,38 +20,51 @@ module.exports = {
       option.setName("amount").setDescription("Number of teams to create")
     ),
   async execute(interaction) {
+    let membersList = [];
+    let membersListNames = [];
+
     const amount = interaction.options.getInteger("amount");
 
     if (amount > 1) {
       let members = await shuffle(interaction.channel.members);
+      members.forEach((member, index) => {
+        console.log(member.user.username, index);
+        membersList.push(member.user);
+        membersListNames.push(member.user.username);
+      });
+      console.log("list", membersList);
+      console.log("list", membersListNames);
 
       console.log("size test", interaction.channel.members.size);
 
       let teams = [];
-      let makeTeams = amount;
-      for (i = 0; i < makeTeams; i++) {
-        num = i + 1;
-        key = "Team " + num;
-        obj = {};
-        obj[key] = [];
-        teams.push(obj);
-        // teams[i] = { obj[key] = [] };
+      let teamsDisplay = [];
+
+      for (i = 0; i < amount; i++) {
+        teams.push([]);
+        teamsDisplay.push([]);
       }
-      
+
       const dynamicIndex = Math.ceil(
         interaction.channel.members.size / teams.length
       );
       console.log("dynamic index", dynamicIndex);
-      console.log(teams);
 
       for (i = 0; i < teams.length; i++) {
-        // num = i + 1;
-        // key = "Team " + num;
-        holder = Object.keys(members).forEach(
-          (teams[key] = () => console.log(teams[key]))
-        );
+        console.log(teams[i]);
+        teams[i] = membersList.splice(-dynamicIndex);
+        teamsDisplay[i] = membersListNames.splice(-dynamicIndex);
       }
+
       console.log(teams);
+      console.log(teamsDisplay);
+      let outPutString = "";
+      for (i = 0; i < teamsDisplay.length; i++) {
+        console.log("working");
+        outPutString += `Team ${i + 1}: ${teamsDisplay[i]}\n`;
+      }
+      console.log(outPutString);
+      return interaction.reply(outPutString);
     }
   },
 };
