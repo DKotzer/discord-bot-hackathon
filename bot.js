@@ -100,31 +100,36 @@ client.on("messageCreate", (msg) => {
 // client.on("");
 
 function toggleRole(msg, args) {
-  if (args[0]) {
-    role = args[0];
-  } else {
-    msg.channel.send("Please enter a role to toggle.");
-    return;
-  }
-
-  let member = msg.member;
-
-  let roleObj = msg.guild.roles.cache.find((r) => r.name === role);
-
-  if (roleObj) {
-    if (member.roles.cache.has(roleObj.id)) {
-      member.roles.remove(roleObj.id);
-      msg.channel.send(`${role} role removed from ${msg.author.username}.`);
+  args = args.join(" ").split(" && ")
+  args.forEach(a=>{
+    if (a) {
+      role = a;
     } else {
-      member.roles.add(roleObj.id);
-      msg.channel.send(`${role} role added to ${msg.author.username}.`);
+      msg.channel.send("Please enter a role to toggle.");
+      return;
     }
-  } else {
-    msg.channel.send("Unable to find specified role within server.");
-  }
+  
+    let member = msg.member;
+  
+    let roleObj = msg.guild.roles.cache.find((r) => r.name === role);
+  
+    if (roleObj) {
+      if (member.roles.cache.has(roleObj.id)) {
+        member.roles.remove(roleObj.id);
+        msg.channel.send(`${role} role removed from ${msg.author.username}.`);
+      } else {
+        member.roles.add(roleObj.id);
+        msg.channel.send(`${role} role added to ${msg.author.username}.`);
+      }
+    } else {
+      msg.channel.send("Unable to find specified role within server.");
+    }
+
+  })
 }
 
 function migrateRole(msg, args) {
+  args = args.join(" ").split(" -> ")
   if (args[0]) {
     role1 = args[0];
   } else {
@@ -164,11 +169,8 @@ function migrateRole(msg, args) {
 }
 
 function createRole(msg, args) {
-  console.log(args)
   let color = args.pop()
   let roleName = args.join(" ")
-  console.log(color)
-  console.log(roleName)
 
   //create role
   msg.guild.roles.create({
@@ -185,15 +187,19 @@ function createRole(msg, args) {
 }
 
 function reactRole(msg, args) {
-  if (args[0]) {
-    emoji = args[0];
+  if (args[args.length-1].match(/\p{Emoji}/u)) {
+    emoji = args.pop()
   } else {
-    msg.channel.send("Please enter a valid emoji.");
-    return;
+    msg.channel.send("Please enter a valid emoji as the final argument.");
+    return
   }
 
-  if (args[1]) {
-    role = args[1];
+  if (args.length > 0) {
+    roleName = args.join(" ")
+  }
+
+  if (roleName) {
+    role = roleName;
     roleObj = msg.guild.roles.cache.find((r) => r.name === role);
     if (!roleObj) {
       msg.channel.send(`The role "${role}" does not exist in this server.`);
@@ -205,7 +211,7 @@ function reactRole(msg, args) {
   }
 
   msg.channel
-    .send(`React to this message with ${emoji} to gain the role ${role}.`)
+    .send(`React to this message with ${emoji} to gain the role ${roleObj}.`)
     .then((message) => {
       message.react(emoji);
 
