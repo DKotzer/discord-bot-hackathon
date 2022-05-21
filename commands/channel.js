@@ -1,57 +1,57 @@
 const { SlashCommandBuilder } = require("@discordjs/builders");
 const moment = require("moment");
 
+function shuffle(arr) {
+  var j, x, index;
+  for (index = arr.length - 1; index > 0; index--) {
+    j = Math.floor(Math.random() * (index + 1));
+    x = arr[index];
+    arr[index] = arr[j];
+    arr[j] = x;
+  }
+  return arr;
+}
+
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("channel")
-    .setDescription("Replies with server info!"),
+    .setDescription("Replies with server info!")
+    .addIntegerOption((option) =>
+      option.setName("amount").setDescription("Number of teams to create")
+    ),
   async execute(interaction) {
-    let teamRed = [];
-    let teamBlue = [];
-    let members = await interaction.channel.members;
-    console.log("Team Blue", teamBlue);
-    teamBlue.forEach((member, index) => {
-      console.log(member.user.username, index);
-    });
-    console.log("Team Red", teamRed);
-    teamRed.forEach((member, index) => {
-      console.log(member.user.username, index);
-    });
-    members.forEach((member, index) => {
-      console.log(member.user.username);
-      if (teamRed.length === teamBlue.length) {
-        teamRed = [...teamRed, member];
-      } else {
-        teamBlue = [...teamBlue, member];
-      }
-      console.log(member.user.username, index);
-    });
-    console.log("red");
-    let redString = "Team Red: ";
-    teamRed.forEach((member, index) => {
-      redString += member.user.username + ", ";
-      console.log(member.user.username, index);
-    });
-    console.log("blue");
-    let blueString = "Team Blue: ";
-    teamBlue.forEach((member, index) => {
-      blueString += member.user.username + ", ";
-      console.log(member.user.username, index);
-    });
-    return interaction.reply(
-      `The channel has been split in to two teams: ${redString}. ${blueString}`
-    );
+    const amount = interaction.options.getInteger("amount");
 
-    // let generalChannel = interaction.channel.guild.channels.find(
-    //   (channel) => channel.name.toLowerCase() === `general`
-    // );
-    // console.log("general channel test", generalChannel);
-    // await interaction.reply(
-    //   `Channel name: ${interaction.guild.name}\nTotal members: ${
-    //     interaction.guild.memberCount
-    //   }\nCreated on: ${moment(interaction.guild.createdAt).format(
-    //     "ddd, MMM Do YYYY, h:mm:ss a"
-    //   )}`
-    // );
+    if (amount > 1) {
+      let members = await shuffle(interaction.channel.members);
+
+      console.log("size test", interaction.channel.members.size);
+
+      let teams = [];
+      let makeTeams = amount;
+      for (i = 0; i < makeTeams; i++) {
+        num = i + 1;
+        key = "Team " + num;
+        obj = {};
+        obj[key] = [];
+        teams.push(obj);
+        // teams[i] = { obj[key] = [] };
+      }
+      
+      const dynamicIndex = Math.ceil(
+        interaction.channel.members.size / teams.length
+      );
+      console.log("dynamic index", dynamicIndex);
+      console.log(teams);
+
+      for (i = 0; i < teams.length; i++) {
+        // num = i + 1;
+        // key = "Team " + num;
+        holder = Object.keys(members).forEach(
+          (teams[key] = () => console.log(teams[key]))
+        );
+      }
+      console.log(teams);
+    }
   },
 };
