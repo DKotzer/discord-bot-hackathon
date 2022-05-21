@@ -7,12 +7,15 @@ const client = new Client({
   intents: [
     Intents.FLAGS.GUILDS, 
     Intents.FLAGS.GUILD_MESSAGES, 
+    Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
     Intents.FLAGS.GUILD_PRESENCES,
     Intents.FLAGS.GUILD_MEMBERS,
   ],
   partials: ["MESSAGE"],
 });
 client.commands = new Collection();
+
+const BOT_PREFIX = process.env.BOT_PREFIX;
 
 const eventsPath = path.join(__dirname, 'events');
 const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
@@ -36,31 +39,8 @@ for (const file of eventFiles) {
   }
 }
 
-const BOT_PREFIX = "!";
-const MOD_ME_COMMAND = "mod-me";
-
 client.on("messageDelete", (msg) => {
   msg.channel.send("Stop deleting messages");
-});
-
-client.on("message", (msg) => {
-  console.log(msg.author.username);
-  if (msg.content == "Jon") {
-    msg.react("❤️");
-  }
-  if (msg.content == "Camiel") {
-    msg.react("❤️");
-  }
-  if (msg.content == "Dylan") {
-    msg.react("❤️");
-  }
-  if (msg.content.includes("test")) {
-    msg.channel.send("stop doing that");
-  }
-
-  if (msg.content === `${BOT_PREFIX}${MOD_ME_COMMAND}`) {
-    modUser(msg.member);
-  }
 });
 
 client.on('interactionCreate', async interaction => {
@@ -85,9 +65,5 @@ client.on('interactionCreate', async interaction => {
 // });
 
 // client.on("");
-
-function modUser(member) {
-  member.roles.add("977323882581205053");
-}
 
 client.login(process.env.BOT_TOKEN);
