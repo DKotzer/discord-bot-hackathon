@@ -12,6 +12,7 @@ const client = new Client({
     Intents.FLAGS.GUILD_MEMBERS,
   ],
   partials: ["MESSAGE"],
+  disableEveryone: false,
 });
 client.commands = new Collection();
 
@@ -68,8 +69,8 @@ client.on("messageCreate", (msg) => {
         msg.channel.send("☕️☕️☕️☕️☕️☕️☕️☕️☕️☕️☕️☕️☕️☕️☕️☕️☕️");
         break;
       // !ping
-      case "ping":
-        msg.channel.send("pong!");
+      case 'ping':
+        pingUser(msg, args);
         break;
       case "toggleRole":
         toggleRole(msg, args);
@@ -203,6 +204,51 @@ function reactRole(msg, args) {
     .catch((err) => {
       console.log(err);
     });
+}
+
+function pingUser(msg, args) {
+  let input = args.join(" ")
+  let pingArgs = input.split(", ")
+  let userIDs = pingArgs.map(p=>{
+    //check for users
+    if (p.toLowerCase()=="me") {
+      return msg.guild.members.cache.find(u => u.user.username.toLowerCase() === msg.author.username.toLowerCase(0))
+    } else if (p.toLowerCase()=="everyone") {
+      return msg.guild.roles.cache.find(r => r.name.toLowerCase() === "@everyone")
+    } else {
+      let id = msg.guild.members.cache.find(u => u.user.username.toLowerCase() === p.toLowerCase())
+      if (typeof id == 'undefined') {
+        //check for roles
+        return msg.guild.roles.cache.find(r => r.name.toLowerCase() === p.toLowerCase())
+      } else {
+        return id
+      }
+    }
+  })
+  //filter out duplicates
+  userIDs = userIDs.filter((v, i, self) => {
+    return self.indexOf(v) === i;
+  })
+
+  let pingMsg = `You have successfully pinged`
+
+  if (userIDs) {
+    for (i in userIDs) {
+      let id = userIDs[i]
+      if (typeof id != 'undefined') {
+        pingMsg+=` ${id}`
+      } else {
+        msg.channel.send(`User/role ${pingArgs[i]} not found.`)
+      }
+    }
+    if (pingMsg != `You have successfully pinged`) {
+      msg.channel.send(pingMsg)
+    } else {
+      msg.channel.send('Please specify a valid user or role to ping.')
+    }
+  } else {
+    msg.channel.send('Unable to find specified user/role.')
+  }
 }
 
 client.login(process.env.BOT_TOKEN);
