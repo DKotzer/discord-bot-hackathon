@@ -112,8 +112,12 @@ client.on("messageCreate", (msg) => {
 // client.on("");
 
 function getHelpInfo(msg, args) {
-  let commands = Object.keys(COMMAND_LIST)
-  msg.reply(`🦸‍♂️ Help is on the way!\nAvailable commands:${commands}`);
+  if (args.length < 1) {
+    let commands = Object.keys(COMMAND_LIST).splice(1).join(", ")
+    msg.reply(`🦸‍♂️ Help is on the way!\nAvailable commands: ${commands}`);
+  } else {
+    msg.reply(`Help info for: ${args[0]}.`); //get help info from a dictionary
+  }
 }
 
 function setupBot(msg, args) {
@@ -216,8 +220,9 @@ function reactRole(msg, args) {
   }
   let command = str[0].split(" -> ")
   if (command.find(c=>c.match(/\p{Emoji}/u))) {
-    if (command[command.length-1].match(/\p{Emoji}/u)) {
-      emoji = command.pop()
+    if (command[0].match(/\p{Emoji}/u)) {
+      emoji = command[0]
+      command = command.slice(1)
     } else {
       msg.channel.send("Please write your custom message on a new line.");
       return
