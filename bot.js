@@ -1,27 +1,14 @@
-const fs = require('node:fs');
-const path = require('node:path');
-const { Client, Collection, Intents } = require("discord.js");
 require("dotenv").config();
-
-const client = new Client({
-  intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS],
+const Discord = require("discord.js");
+const client = new Discord.Client({
+  intents: [Discord.Intents.FLAGS.GUILDS, Discord.Intents.FLAGS.GUILD_MESSAGES, Discord.Intents.FLAGS.GUILD_MESSAGE_REACTIONS],
   partials: ["MESSAGE"],
 });
-client.commands = new Collection();
 
-const commandsPath = path.join(__dirname, 'commands');
-const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
-
-for (const file of commandFiles) {
-  const filePath = path.join(commandsPath, file);
-  const command = require(filePath);
-  client.commands.set(command.data.name, command);
-}
-
-const BOT_PREFIX = "?c ";
+const BOT_PREFIX = process.env.BOT_PREFIX;
 
 client.on("ready", () => {
-  console.log("CoffeeBot is ready to go!!!!");
+  console.log("The Bot is ready to go!!!!");
 });
 
 client.on("messageDelete", (msg) => {
@@ -41,8 +28,8 @@ client.on("message", (msg) => {
     msg.react("🤖");
   }
 
-  if (msg.content.substring(0, BOT_PREFIX.length) == BOT_PREFIX) {
-    var args = msg.content.substring(BOT_PREFIX.length).split(' ');
+  if (msg.content.substring(0, BOT_PREFIX.length+1) == BOT_PREFIX+" ") {
+    var args = msg.content.substring(BOT_PREFIX.length+1).split(' ');
     var cmd = args[0];
     args = args.splice(1);
 
@@ -74,17 +61,17 @@ client.on("message", (msg) => {
 client.on('interactionCreate', async interaction => {
   if (!interaction.isCommand()) return;
 
-  const command = client.commands.get(interaction.commandName);
+  const { commandName } = interaction;
 
-  if (!command) return;
-
-  try {
-    await command.execute(interaction);
-  } catch (error) {
-    console.error(error);
-    await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+  if (commandName === 'ping') {
+    await interaction.reply('Pong!');
+  } else if (commandName === 'server') {
+    await interaction.reply(`Server name: ${interaction.guild.name}\nTotal members: ${interaction.guild.memberCount}`);
+  } else if (commandName === 'user') {
+    await interaction.reply('User info.');
+  } else if (commandName === 'test') {
+    await interaction.reply('this was a test')
   }
-
 })
 
 // client.on("guildMemberAdd", (message, member) => {
@@ -199,7 +186,6 @@ function reactRole(msg, args) {
   .catch(err => {
     console.log(err)
   })
-
 }
 
 client.login(process.env.BOT_TOKEN);
