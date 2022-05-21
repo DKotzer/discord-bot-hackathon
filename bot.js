@@ -5,34 +5,52 @@ const client = new Discord.Client({
   partials: ["MESSAGE"],
 });
 
-const BOT_PREFIX = "!";
-const MOD_ME_COMMAND = "mod-me";
+const BOT_PREFIX = "?c ";
 
 client.on("ready", () => {
-  console.log("Our bot is ready to go!!!!");
+  console.log("CoffeeBot is ready to go!!!!");
 });
 
 client.on("messageDelete", (msg) => {
-  msg.channel.send("Stop deleting messages");
+  msg.channel.send("👀");
 });
 
 client.on("message", (msg) => {
+  // console.log(msg);
   console.log(msg.author.username);
-  if (msg.content == "Jon") {
+  if (msg.content.toLowerCase().includes("jon")) {
     msg.react("❤️");
   }
-  if (msg.content == "Camiel") {
-    msg.react("❤️");
+  if (msg.content.toLowerCase().includes("camiel")) {
+    msg.react("🏅");
   }
-  if (msg.content == "Dylan") {
-    msg.react("❤️");
-  }
-  if (msg.content.includes("test")) {
-    msg.channel.send("stop doing that");
+  if (msg.content.toLowerCase().includes("dylan")) {
+    msg.react("🤖");
   }
 
-  if (msg.content === `${BOT_PREFIX}${MOD_ME_COMMAND}`) {
-    modUser(msg.member);
+  if (msg.content.substring(0, BOT_PREFIX.length) == BOT_PREFIX) {
+    var args = msg.content.substring(BOT_PREFIX.length).split(' ');
+    var cmd = args[0];
+    args = args.splice(1);
+
+    switch(cmd) {
+      case 'help':
+        msg.channel.send("🦸‍♂️ Help is on the way!");
+        break;
+      case 'coffee':
+        msg.channel.send("☕️☕️☕️☕️☕️☕️☕️☕️☕️☕️☕️☕️☕️☕️☕️☕️☕️");
+        break;
+      // !ping
+      case 'ping':
+        msg.channel.send("pong!");
+        break;
+      case 'addRole':
+        modUser(msg.member);
+        break;
+      case 'reactRole':
+        reactRole(msg, args);
+        break;
+  }
   }
 });
 
@@ -60,7 +78,30 @@ client.on('interactionCreate', async interaction => {
 // client.on("");
 
 function modUser(member) {
-  member.roles.add("977323882581205053");
+  if (member.roles.cache.has("977323882581205053")) {
+    member.roles.remove("977323882581205053");
+  } else {
+    member.roles.add("977323882581205053");
+  }
+}
+
+function reactRole(msg, args) {
+  if (args[0]) {
+    emoji = args[0]
+  } else {
+    msg.channel.send("Please enter a valid emoji")
+    return
+  }
+
+  if (args[1]) {
+    role = args[1]
+  } else {
+    msg.channel.send("Please enter a valid role")
+    return
+  }
+
+  msg.channel.send(`React to this message with ${emoji} to gain the role ${role}`)
+
 }
 
 client.login(process.env.BOT_TOKEN);
