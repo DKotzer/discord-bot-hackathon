@@ -43,7 +43,11 @@ client.on("message", (msg) => {
         break;
       // !ping
       case 'ping':
-        pingUser(msg, args);
+        if (args.length < 1) {
+          msg.channel.send('pong!')
+        } else {
+          pingUser(msg, args);
+        }
         break;
       case 'toggleRole':
         toggleRole(msg, args);
