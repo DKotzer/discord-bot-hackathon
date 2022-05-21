@@ -46,8 +46,5 @@ client.on("message", (msg) => {
 function modUser(member) {
   member.roles.add("977323882581205053");
 }
-test = {
-  name: "bob",
-};
+
 client.login(process.env.BOT_TOKEN);
-client.emit("guildMemberAdd");
