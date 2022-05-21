@@ -1,23 +1,27 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const { Client, Collection, Intents } = require("discord.js");
 require("dotenv").config();
-const fs = require("node:fs");
-const path = require("node:path");
-const Discord = require("discord.js");
-const client = new Discord.Client({
+
+const client = new Client({
   intents: [
-    Discord.Intents.FLAGS.GUILDS,
-    Discord.Intents.FLAGS.GUILD_MESSAGES,
-    Discord.Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
+    Intents.FLAGS.GUILDS, 
+    Intents.FLAGS.GUILD_MESSAGES, 
+    Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
+    Intents.FLAGS.GUILD_PRESENCES,
+    Intents.FLAGS.GUILD_MEMBERS,
   ],
   partials: ["MESSAGE"],
 });
+client.commands = new Collection();
 
 const BOT_PREFIX = process.env.BOT_PREFIX;
 
-client.commands = new Discord.Collection();
-const commandsPath = path.join(__dirname, "commands");
-const commandFiles = fs
-  .readdirSync(commandsPath)
-  .filter((file) => file.endsWith(".js"));
+const eventsPath = path.join(__dirname, 'events');
+const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
+
+const commandsPath = path.join(__dirname, 'commands');
+const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
 
 for (const file of commandFiles) {
   const filePath = path.join(commandsPath, file);
@@ -25,41 +29,21 @@ for (const file of commandFiles) {
   client.commands.set(command.data.name, command);
 }
 
-client.once("ready", (c) => {
-  console.log(`Ready! Logged in as ${c.user.tag}`);
-});
-
-client.on("interactionCreate", async (interaction) => {
-  console.log(
-    `${interaction.user.tag} in #${interaction.channel.name} triggered an interaction.`
-  );
-  if (!interaction.isCommand()) return;
-
-  const command = client.commands.get(interaction.commandName);
-
-  if (!command) return;
-
-  try {
-    await command.execute(interaction);
-  } catch (error) {
-    console.error(error);
-    await interaction.reply({
-      content: "There was an error while executing this command!",
-      ephemeral: true,
-    });
+for (const file of eventFiles) {
+  const filePath = path.join(eventsPath, file);
+  const event = require(filePath);
+  if (event.once) {
+    client.once(event.name, (...args) => event.execute(...args));
+  } else {
+    client.on(event.name, (...args) => event.execute(...args));
   }
-});
-
-// client.on("ready", () => {
-//   console.log("The Bot is ready to go!!!!");
-// });
+}
 
 client.on("messageDelete", (msg) => {
   msg.channel.send("👀");
 });
 
 client.on("messageCreate", (msg) => {
-  // console.log(msg);
   console.log(msg.author.username);
   if (msg.content.toLowerCase().includes("jon")) {
     msg.react("❤️");
@@ -98,24 +82,6 @@ client.on("messageCreate", (msg) => {
         reactRole(msg, args);
         break;
     }
-  }
-});
-
-client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isCommand()) return;
-
-  const { commandName } = interaction;
-
-  if (commandName === "ping") {
-    await interaction.reply("Pong!");
-  } else if (commandName === "server") {
-    await interaction.reply(
-      `Server name: ${interaction.guild.name}\nTotal members: ${interaction.guild.memberCount}`
-    );
-  } else if (commandName === "user") {
-    await interaction.reply("User info.");
-  } else if (commandName === "test") {
-    await interaction.reply("this was a test");
   }
 });
 
