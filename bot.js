@@ -76,14 +76,16 @@ client.on("messageCreate", (msg) => {
           pingUser(msg, args);
         }
         break;
-      case "toggleRole":
+      case "toggle_role":
         toggleRole(msg, args);
         break;
-      case "migrateRole":
+      case "migrate_role":
         migrateRole(msg, args);
         break;
-
-      case "reactRole":
+      case "create_role":
+        createRole(msg,args);
+        break;
+      case "react_role":
         reactRole(msg, args);
         break;
     }
@@ -159,6 +161,27 @@ function migrateRole(msg, args) {
   } else {
     msg.channel.send(`Unable to find role ${role1} within server.`);
   }
+}
+
+function createRole(msg, args) {
+  console.log(args)
+  let color = args.pop()
+  let roleName = args.join(" ")
+  console.log(color)
+  console.log(roleName)
+
+  //create role
+  msg.guild.roles.create({
+    name: roleName,
+    color: color.toUpperCase(),
+  })
+  .then(role=>{
+    msg.channel.send(`Role ${role} successfully created!`);
+  })
+  .catch(err=>{
+      console.log(err),
+      msg.channel.send(`Error creating role.`)
+  });
 }
 
 function reactRole(msg, args) {
