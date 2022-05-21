@@ -1,5 +1,39 @@
 const { SlashCommandBuilder } = require("@discordjs/builders");
+const { DiscordAPIError, MessageEmbed, Message } = require("discord.js");
+const { min } = require("moment");
 const moment = require("moment");
+
+const colors = [
+  "#006400",
+  "#1E90FF",
+  "#DC143C",
+  "#FF4500",
+  "#663399",
+  "#FFFF00",
+  "#006400",
+  "#1E90FF",
+  "#DC143C",
+  "#FF4500",
+  "#663399",
+  "#FFFF00",
+  "#006400",
+  "#1E90FF",
+  "#DC143C",
+  "#FF4500",
+  "#663399",
+  "#FFFF00",
+];
+
+const teamNames = [
+  "jScript",
+  "Python",
+  "C++",
+  "Rust",
+  "React",
+  "Django",
+  "Vim",
+  "Solidity",
+];
 
 function shuffle(arr) {
   var j, x, index;
@@ -28,14 +62,9 @@ module.exports = {
     if (amount > 1) {
       let members = await shuffle(interaction.channel.members);
       members.forEach((member, index) => {
-        console.log(member.user.username, index);
         membersList.push(member.user);
-        membersListNames.push(member.user.username);
+        membersListNames.push(" " + member.user.username);
       });
-      console.log("list", membersList);
-      console.log("list", membersListNames);
-
-      console.log("size test", interaction.channel.members.size);
 
       let teams = [];
       let teamsDisplay = [];
@@ -48,7 +77,6 @@ module.exports = {
       const dynamicIndex = Math.floor(
         interaction.channel.members.size / teams.length
       );
-      console.log("dynamic index", dynamicIndex);
 
       for (i = 0; i < teams.length; i++) {
         console.log(teams[i]);
@@ -56,15 +84,37 @@ module.exports = {
         teamsDisplay[i] = membersListNames.splice(-dynamicIndex);
       }
 
-      console.log(teams);
-      console.log(teamsDisplay);
-      let outPutString = "";
+      // console.log(teams);
+      // console.log(teamsDisplay);
+
+      // let outPutString = "";
+      //figure out how to push all embeds in one return interaction.reply at end instead of sending them all seperately
+      let embeds = [];
       for (i = 0; i < teamsDisplay.length; i++) {
-        console.log("working");
-        outPutString += `Team ${i + 1}: ${teamsDisplay[i]}\n`;
+        console.log("team " + i, teams[i]);
+        // let numHolder = i + 1;
+        const groupEmbed = new MessageEmbed()
+          .setColor(colors[i])
+          .setTitle("Team " + teamNames[i])
+          .setDescription(`${teamsDisplay[i]}`);
+        // outPutString += `Team ${i + 1}: ${teamsDisplay[i]}\n`;
+        interaction.channel.send({ embeds: [groupEmbed] });
+        embeds.push({ embeds: [groupEmbed] });
       }
-      console.log(outPutString);
-      return interaction.reply(outPutString);
+      // console.log(outPutString);
+      // console.log(embeds);
+      let endMessage = "Here is your Randomly Generated(soon) groups"
+      return interaction.reply(endMessage);
+      // return message.channel
+      //   .createWebhook("Webhook Name", message.author.displayAvatarURL)
+      //   .then((w) =>
+      //     w.send({
+      //       embeds: [
+      //         new Discord.MessageEmbed().setAuthor("Embed 1"),
+      //         new Discord.MessageEmbed().setAuthor("Embed 2"),
+      //       ],
+      //     })
+      //   );
     }
   },
 };
