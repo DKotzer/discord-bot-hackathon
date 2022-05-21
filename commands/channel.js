@@ -45,7 +45,7 @@ module.exports = {
         teamsDisplay.push([]);
       }
 
-      const dynamicIndex = Math.ceil(
+      const dynamicIndex = Math.floor(
         interaction.channel.members.size / teams.length
       );
       console.log("dynamic index", dynamicIndex);
