@@ -2,6 +2,7 @@ const { SlashCommandBuilder } = require("@discordjs/builders");
 const { DiscordAPIError, MessageEmbed, Message } = require("discord.js");
 const { min } = require("moment");
 const moment = require("moment");
+const { getRandomIceBreaker } = require("../api/index");
 
 const colors = [
   "#006400",
@@ -82,39 +83,33 @@ module.exports = {
         console.log(teams[i]);
         teams[i] = membersList.splice(-dynamicIndex);
         teamsDisplay[i] = membersListNames.splice(-dynamicIndex);
+        const thread = await interaction.channel.threads.create({
+          name: `Team ${teamNames[i]}`,
+          autoArchiveDuration: "MAX",
+          reason: "For group chats",
+        });
+        for (j = 0; j < teams[i].length; j++) {
+          await thread.members.add(teams[i][j]);
+          console.log("j test", teams[i][j].username);
+        }
+        const iceBreakerQuestion = getRandomIceBreaker();
+        await thread.send(
+          `Welcome! You have come to the right place to meet new people and expand your network!\n\nTo kick things off, feel free to introduce yourself and answer the following question:\n\n${iceBreakerQuestion}`
+        );
       }
-
-      // console.log(teams);
-      // console.log(teamsDisplay);
-
-      // let outPutString = "";
-      //figure out how to push all embeds in one return interaction.reply at end instead of sending them all seperately
       let embeds = [];
       for (i = 0; i < teamsDisplay.length; i++) {
-        console.log("team " + i, teams[i]);
-        // let numHolder = i + 1;
         const groupEmbed = new MessageEmbed()
           .setColor(colors[i])
           .setTitle("Team " + teamNames[i])
           .setDescription(`${teamsDisplay[i]}`);
-        // outPutString += `Team ${i + 1}: ${teamsDisplay[i]}\n`;
-        interaction.channel.send({ embeds: [groupEmbed] });
+        await interaction.channel.send({ embeds: [groupEmbed] });
         embeds.push({ embeds: [groupEmbed] });
+        if (i === teamsDisplay.length) {
+          let endMessage = "Here is your Randomly Generated(soon) groups";
+          await interaction.reply(endMessage);
+        }
       }
-      // console.log(outPutString);
-      // console.log(embeds);
-      let endMessage = "Here is your Randomly Generated(soon) groups"
-      return interaction.reply(endMessage);
-      // return message.channel
-      //   .createWebhook("Webhook Name", message.author.displayAvatarURL)
-      //   .then((w) =>
-      //     w.send({
-      //       embeds: [
-      //         new Discord.MessageEmbed().setAuthor("Embed 1"),
-      //         new Discord.MessageEmbed().setAuthor("Embed 2"),
-      //       ],
-      //     })
-      //   );
     }
   },
 };
