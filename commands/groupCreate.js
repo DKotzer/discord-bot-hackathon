@@ -97,12 +97,34 @@ module.exports = {
 
     for (i = 0; i < teams.length; i++) {
       // console.log(teams[i]);
+      let channelList = [];
+      let channelId = "";
       teams[i] = membersList.splice(-dynamicIndex);
       teamsDisplay[i] = membersListNames.splice(-dynamicIndex);
+
       await interaction.channel.guild.channels
         .create(`Team ${teamNames[i]}`, { reason: "Group Creation" })
-        .then(console.log)
+        .then((channelName) => {
+          console.log("channelName", channelName.id);
+          channelId = channelName.id;
+        })
         .catch(console.error);
+
+      const groupEmbed = new MessageEmbed()
+        .setColor(colors[i])
+        .setTitle(`Team ${teamNames[i]}`)
+        .setDescription(`${teamsDisplay[i]}`)
+        .addField("Team channel", `<#${channelId}>`, true);
+      await interaction.channel.send({ embeds: [groupEmbed] });
+      const channel = interaction.guild.channels.cache.find(
+        (channel) => channel.name === `Team ${teamNames[i]}`
+      );
+      // console.log("channel test", channel);
+      let key = teamNames[i];
+      let teamObj = {};
+      // teamObj[teamNames[i]] = `<#${}`
+      channelList.push(teamObj);
+      channelList.push(teamNames[i]);
       const thread = await interaction.channel.threads.create({
         name: `Team ${teamNames[i]}`,
         autoArchiveDuration: "MAX",
@@ -119,18 +141,6 @@ module.exports = {
     }
     // let embeds = [];
 
-    for (i = 0; i < teamsDisplay.length; i++) {
-      // const channel = interaction.channel.guild.channels.find(
-      //   (channel) => channel.name === `Team-${teamNames[i]}`
-      // );
-      const groupEmbed = new MessageEmbed()
-        .setColor(colors[i])
-        .setTitle(`Team ${teamNames[i]}`)
-        .setDescription(`${teamsDisplay[i]}`)
-        .addField("Team channel", `<#${interaction.channel.id}>`, true);
-      await interaction.channel.send({ embeds: [groupEmbed] });
-      // embeds.push({ embeds: [groupEmbed] });
-    }
     // console.log("embeds", embeds);
   },
 };
