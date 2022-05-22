@@ -64,18 +64,26 @@ const handleModalSubmit = async(interaction) => {
 
     await interaction.channel.send({ embeds: [meetingEmbed], components: [buttons] });
     await interaction.reply('Thanks for booking a coffee chat!')
-  }
-}
 
-const handleButtonClick = async(interaction) => {
-  const command = interaction.customId;
+    const filter = i => ((i.customId === "Accept") || (i.customId === "Reject")) /*&& i.user.id === message.author.id */
+    const collector = interaction.channel.createMessageComponentCollector({ filter, time: 15000 })
 
-  if (command === 'Accept') {
-    await interaction.reply('Your coffee chat was accepted!')
-  } else if (command === 'Reject') {
-    await interaction.reply('Your coffee chat was rejected :( Better luck next time!')
-  } else if (command === 'Edit') {
-    await interaction.reply('Changes needed for this coffee chat')
+    collector.on('collect', async (i) => {
+      buttons.components[0].setDisabled(true);
+      buttons.components[1].setDisabled(true);
+      buttons.components[2].setDisabled(true);
+      
+      let update = '';
+      if (i.customId === 'Accept') {
+        update = 'Accepted!'
+      } else if (i.customId === 'Reject') {
+        update = 'Rejected :('
+      }
+
+      await i.update({ embeds: [meetingEmbed], components: [buttons], content: update })
+
+    })
+
   }
 }
 
@@ -85,11 +93,6 @@ module.exports = {
     console.log(
       `${interaction.user.tag} in #${interaction.channel.name} triggered an interaction.`
     );
-
-    if (interaction.isButton()) {
-      handleButtonClick(interaction)
-      return
-    }
 
     if (interaction.isModalSubmit()) {
       handleModalSubmit(interaction)
