@@ -52,7 +52,7 @@ function shuffle(arr) {
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("group-create")
-    .setDescription("Replies with server info!")
+    .setDescription("Choose a number of groups to create")
     .addIntegerOption((option) =>
       option.setName("amount").setDescription("Number of teams to create")
     ),
