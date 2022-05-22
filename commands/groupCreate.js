@@ -65,6 +65,16 @@ module.exports = {
     if (amount < 2) {
       return;
     }
+
+    // Jons filtering of online users
+    // const fetchedMembers = await interaction.guild.members.fetch({
+    //   withPresences: true,
+    // });
+    // const totalOnline = fetchedMembers.filter(
+    //   (member) => member.presence?.status === "online" && !member.user.bot
+    // );
+    // const membersOnline = totalOnline.map((member) => member);
+
     let members = await shuffle(interaction.channel.members);
     members.forEach((member, index) => {
       membersList.push(member.user);
@@ -98,7 +108,7 @@ module.exports = {
       }
       const iceBreakerQuestion = getRandomIceBreaker();
       await thread.send(
-        `Welcome! You have come to the right place to meet new people and expand your network!\n\nTo kick things off, feel free to introduce yourself and answer the following question:\n\n${iceBreakerQuestion}`
+        `Welcome Team ${teamNames[i]}! You have come to the right place to meet new people and expand your network!\n\nTo kick things off, feel free to introduce yourself and answer the following question:\n\n${iceBreakerQuestion}`
       );
     }
     // let embeds = [];
