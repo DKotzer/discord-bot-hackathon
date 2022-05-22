@@ -91,12 +91,12 @@ client.on("messageCreate", (msg) => {
     if (COMMAND_LIST[cmd.trim()]) {
       COMMAND_LIST[cmd.trim()](msg,args)
     } else {
-      console.log(cmd)
-      console.log(args)
       if (!COMMAND_LIST[cmd.trim().split(" ")[0]]) {
         msg.channel.send(`Command "${cmd.trim()}" not recognised. Try typing "${BOT_PREFIX} help" for a list of commands.\n☕️ Happy refuelling!`);
       } else if (args.length < 1) {
-        msg.channel.send(`Please remember to include a colon (:) after your command if you are passing any arguments.\ne.g. ${BOT_PREFIX} ${cmd.split(" ")[0]}: ${cmd.split(" ")[cmd.split(" ").length-1]}`);
+        let splitCmd = cmd.split(" ")
+        let splitCmdReduced = splitCmd.splice(1)
+        msg.channel.send(`Please remember to include a colon (:) after your command if you are passing any arguments.\ne.g. ${BOT_PREFIX} ${splitCmd[0]}: ${splitCmdReduced.join(" ")}`);
       } else {
         msg.channel.send(`Command "${cmd.trim()}" not recognised. Try typing "${BOT_PREFIX} help" for a list of commands.\n☕️ Happy refuelling!`);
       }
@@ -218,65 +218,74 @@ function reactRole(msg, args) {
   } else {
     customMessage = null;
   }
-  let command = str[0].split(" -> ")
-  if (command.find(c=>c.match(/\p{Emoji}/u))) {
-    if (command[0].match(/\p{Emoji}/u)) {
-      emoji = command[0]
-      command = command.slice(1)
-    } else {
-      msg.channel.send("Please write your custom message on a new line.");
+  let emojis = {}
+  str[0].split(",").forEach(rc=>{
+    if (rc.trim().length < 1) {
       return
+    } else {
+      let command = rc.trim().split("->")
+      if (command.length < 2) {
+        msg.channel.send(`You can assign a reaction-role using the syntax: emoji -> role.`);
+      } else {
+        if (command.find(c=>c.match(/\p{Emoji}/u))) {
+          if (command[0].match(/\p{Emoji}/u)) {
+            let role = command[1].trim()
+            roleObj = msg.guild.roles.cache.find((r) => r.name === role);
+            if (!roleObj) {
+              msg.channel.send(`The role "${role}" does not exist in this server.`);
+              return;
+            }
+            emojis[command[0].trim()] = roleObj
+    
+          } else {
+            msg.channel.send("Please write your custom message on a new line.");
+            return
+          }
+        } else {
+          msg.channel.send(`Please assign a valid emoji to the role "${command[1].trim()}".`);
+          return
+        }
+      }
     }
-  } else {
-    msg.channel.send("Please enter a valid emoji as the final argument on the first line.");
-    return
-  }
-
-  if (command.length > 0) {
-    roleName = command.join(" ")
-  }
-
-  if (roleName) {
-    role = roleName;
-    roleObj = msg.guild.roles.cache.find((r) => r.name === role);
-    if (!roleObj) {
-      msg.channel.send(`The role "${role}" does not exist in this server.`);
-      return;
-    }
-  } else {
-    msg.channel.send("Please enter a valid role.");
-    return;
-  }
+    
+  })
 
   if (customMessage) {
     sendMsg = customMessage;
   } else  {
-    sendMsg = `React to this message with ${emoji} to gain the role ${roleObj}.`
+    if (emojis.length === 1) {
+      sendMsg = `React to this message with ${Object.keys(emojis)[0]} to gain the role ${emojis[Object.keys(emojis)[0]]}.`
+    } else {
+      sendMsg = `React to this message with:` 
+      Object.keys(emojis).forEach(emoji=>{
+        sendMsg+=`\n${emoji} to gain the role ${emojis[emoji]}.`
+      })
+    }
   }
 
   msg.channel
     .send(sendMsg)
     .then((message) => {
-      message.react(emoji);
+      Object.keys(emojis).forEach(emoji=>{
+        message.react(emoji);
+        const filter = (reaction, user) => {
+          return reaction.emoji.name == emoji && user.id != message.author.id;
+        };
+  
+        const collector = message.createReactionCollector({filter,dispose:true});
+  
+        collector.on("collect", (reaction, user) => {
+          let reactor = msg.guild.members.cache.find((u) => u.id === user.id);
+          reactor.roles.add(emojis[emoji].id);
+        });
+  
+        collector.on("remove", (reaction, user) => {
+          let reactor = msg.guild.members.cache.find((u) => u.id === user.id);
+          reactor.roles.remove(emojis[emoji].id);
+        });
+      })
 
-      const filter = (reaction, user) => {
-        return reaction.emoji.name == emoji && user.id != message.author.id;
-      };
-
-      const collector = message.createReactionCollector({
-        filter,
-        dispose: true,
-      });
-
-      collector.on("collect", (reaction, user) => {
-        let reactor = msg.guild.members.cache.find((u) => u.id === user.id);
-        reactor.roles.add(roleObj.id);
-      });
-
-      collector.on("remove", (reaction, user) => {
-        let reactor = msg.guild.members.cache.find((u) => u.id === user.id);
-        reactor.roles.remove(roleObj.id);
-      });
+      
 
       // msg.delete()
     })
