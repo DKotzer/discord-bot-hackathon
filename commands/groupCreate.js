@@ -55,61 +55,61 @@ module.exports = {
       option.setName("amount").setDescription("Number of teams to create")
     ),
   async execute(interaction) {
+    let endMessage = "Here is your Randomly Generated(soon) groups";
+    await interaction.reply(endMessage);
     let membersList = [];
     let membersListNames = [];
 
     const amount = interaction.options.getInteger("amount");
 
-    if (amount > 1) {
-      let members = await shuffle(interaction.channel.members);
-      members.forEach((member, index) => {
-        membersList.push(member.user);
-        membersListNames.push(" " + member.user.username);
-      });
-
-      let teams = [];
-      let teamsDisplay = [];
-
-      for (i = 0; i < amount; i++) {
-        teams.push([]);
-        teamsDisplay.push([]);
-      }
-
-      const dynamicIndex = Math.floor(
-        interaction.channel.members.size / teams.length
-      );
-
-      for (i = 0; i < teams.length; i++) {
-        console.log(teams[i]);
-        teams[i] = membersList.splice(-dynamicIndex);
-        teamsDisplay[i] = membersListNames.splice(-dynamicIndex);
-        const thread = await interaction.channel.threads.create({
-          name: `Team ${teamNames[i]}`,
-          autoArchiveDuration: "MAX",
-          reason: "For group chats",
-        });
-        for (j = 0; j < teams[i].length; j++) {
-          await thread.members.add(teams[i][j]);
-          console.log("j test", teams[i][j].username);
-        }
-        const iceBreakerQuestion = getRandomIceBreaker();
-        await thread.send(
-          `Welcome! You have come to the right place to meet new people and expand your network!\n\nTo kick things off, feel free to introduce yourself and answer the following question:\n\n${iceBreakerQuestion}`
-        );
-      }
-      let embeds = [];
-      for (i = 0; i < teamsDisplay.length; i++) {
-        const groupEmbed = new MessageEmbed()
-          .setColor(colors[i])
-          .setTitle("Team " + teamNames[i])
-          .setDescription(`${teamsDisplay[i]}`);
-        await interaction.channel.send({ embeds: [groupEmbed] });
-        embeds.push({ embeds: [groupEmbed] });
-        if (i === teamsDisplay.length) {
-          let endMessage = "Here is your Randomly Generated(soon) groups";
-          await interaction.reply(endMessage);
-        }
-      }
+    if (amount < 2) {
+      return;
     }
+    let members = await shuffle(interaction.channel.members);
+    members.forEach((member, index) => {
+      membersList.push(member.user);
+      membersListNames.push(" " + member.user.username);
+    });
+
+    let teams = [];
+    let teamsDisplay = [];
+
+    for (i = 0; i < amount; i++) {
+      teams.push([]);
+      teamsDisplay.push([]);
+    }
+
+    const dynamicIndex = Math.floor(
+      interaction.channel.members.size / teams.length
+    );
+
+    for (i = 0; i < teams.length; i++) {
+      // console.log(teams[i]);
+      teams[i] = membersList.splice(-dynamicIndex);
+      teamsDisplay[i] = membersListNames.splice(-dynamicIndex);
+      const thread = await interaction.channel.threads.create({
+        name: `Team ${teamNames[i]}`,
+        autoArchiveDuration: "MAX",
+        reason: "For group chats",
+      });
+      for (j = 0; j < teams[i].length; j++) {
+        await thread.members.add(teams[i][j]);
+        // console.log("j test", teams[i][j].username);
+      }
+      const iceBreakerQuestion = getRandomIceBreaker();
+      await thread.send(
+        `Welcome! You have come to the right place to meet new people and expand your network!\n\nTo kick things off, feel free to introduce yourself and answer the following question:\n\n${iceBreakerQuestion}`
+      );
+    }
+    // let embeds = [];
+    for (i = 0; i < teamsDisplay.length; i++) {
+      const groupEmbed = new MessageEmbed()
+        .setColor(colors[i])
+        .setTitle("Team " + teamNames[i])
+        .setDescription(`${teamsDisplay[i]}`);
+      await interaction.channel.send({ embeds: [groupEmbed] });
+      // embeds.push({ embeds: [groupEmbed] });
+    }
+    // console.log("embeds", embeds);
   },
 };
