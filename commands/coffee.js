@@ -37,6 +37,6 @@ module.exports = {
     console.log(iceBreakerQuestion)
     await thread.send(`Welcome ${user1} & ${user2}! You have come to the right place to meet new people and expand your network!\n\nTo kick things off, feel free to introduce yourself and answer the following question:\n\n${iceBreakerQuestion}`)
 
-    await interaction.reply(`Created thread '${thread.name}' for ${user1.user} and ${user2.user}`);
+    await interaction.reply(`Created thread '${thread.name}' for ${user1} and ${user2.user}`);
   }
 } 
