@@ -36,6 +36,8 @@ const teamNames = [
   "Solidity",
 ];
 
+let channels = [];
+
 function shuffle(arr) {
   var j, x, index;
   for (index = arr.length - 1; index > 0; index--) {
@@ -97,6 +99,10 @@ module.exports = {
       // console.log(teams[i]);
       teams[i] = membersList.splice(-dynamicIndex);
       teamsDisplay[i] = membersListNames.splice(-dynamicIndex);
+      await interaction.channel.guild.channels
+        .create(`Team ${teamNames[i]}`, { reason: "Group Creation" })
+        .then(console.log)
+        .catch(console.error);
       const thread = await interaction.channel.threads.create({
         name: `Team ${teamNames[i]}`,
         autoArchiveDuration: "MAX",
@@ -112,11 +118,16 @@ module.exports = {
       );
     }
     // let embeds = [];
+
     for (i = 0; i < teamsDisplay.length; i++) {
+      // const channel = interaction.channel.guild.channels.find(
+      //   (channel) => channel.name === `Team-${teamNames[i]}`
+      // );
       const groupEmbed = new MessageEmbed()
         .setColor(colors[i])
-        .setTitle("Team " + teamNames[i])
-        .setDescription(`${teamsDisplay[i]}`);
+        .setTitle(`Team ${teamNames[i]}`)
+        .setDescription(`${teamsDisplay[i]}`)
+        .addField("Team channel", `<#${interaction.channel.id}>`, true);
       await interaction.channel.send({ embeds: [groupEmbed] });
       // embeds.push({ embeds: [groupEmbed] });
     }
